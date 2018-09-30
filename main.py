@@ -10,18 +10,16 @@ kA = 0.3  # доля действия в итоговом весе фразы
 kF = 0.2  # доля общего соответствия фразы
 
 
-
 # основной метод
 def main(source):
-
     # загружаем объекты
-    with open('objects.json') as f:
+    with open("objects.json", encoding='utf-8') as f:
         objects = json.load(f)
     # загружаем действия
-    with open('actions.json') as f:
+    with open("actions.json", encoding='utf-8') as f:
         actions = json.load(f)
     # загружаем целевые фразы
-    with open('targets.json') as f:
+    with open("targets.json", encoding='utf-8') as f:
         targets = json.load(f)
     # класс для результирующего массива
     class Result:

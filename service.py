@@ -1,5 +1,6 @@
 from flask import Flask, abort, request
-import main
+
+from main import main
 
 app = Flask(__name__)
 
@@ -9,10 +10,9 @@ def elastic_search():
     app.logger.info("{} request received from: {}".format(
         request.method, request.remote_addr))
     if not request.json or 'data' not in request.json:
-        app.logger.error("Request has no data or request is not json, aborting")
+        app.logger.error('Request has no data or request is not json, aborting')
         abort(400)
-
-        return main(request.json['data'])
+    return main(request.json['data'])
 
 
 if __name__ == '__main__':
