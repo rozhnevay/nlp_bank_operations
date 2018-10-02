@@ -7,7 +7,8 @@ import editdistance
 # устанавливаем коэффициенты модели
 kO = 0.5  # доля объекта в итоговом весе фразы
 kA = 0.3  # доля действия в итоговом весе фразы
-kF = 0.2  # доля общего соответствия фразы
+kE = 0.5  # допустимое число ошибок в слове
+#kF = 0.2  # доля общего соответствия фразы # убрал коэффициент
 
 
 # основной метод
@@ -55,20 +56,30 @@ def main(source):
     # 2. Ищем объекты
     for token in source_tokens:
         for object in objects['objects']:
-            for synonym in object['synonyms']:
-                distance = editdistance.eval(token, synonym['word'])
-                if distance <= int(synonym['l']):
-                    addResultByObject(object['id'], '', '',
-                                      kO * float(synonym['score']) * (len(token) - distance) / len(token))
+            distance = editdistance.eval(token, object['object'])
+            if distance <= int(object['l']):
+                addResultByObject(object['id'], '', '',
+                                  kO * (len(token) - distance) / len(token))
+            else:
+                for synonym in object['synonyms']:
+                    distance = editdistance.eval(token, synonym['word'])
+                    if distance <= int(synonym['l']):
+                        addResultByObject(object['id'], '', '',
+                                          kO * float(synonym['score']) * (len(token) - distance) / len(token))
 
     # 3. Ищем действия
     for token in source_tokens:
         for action in actions['actions']:
-            for synonym in action['synonyms']:
-                distance = editdistance.eval(token, synonym['word'])
-                if distance <= int(synonym['l']):
-                    addResultByObject('', action['id'], '',
-                                      kA * float(synonym['score']) * (len(token) - distance) / len(token))
+            distance = editdistance.eval(token, action['action'])
+            if distance <= int(action['l']):
+                addResultByObject('', action['id'], '',
+                                  kA * (len(token) - distance) / len(token))
+            else:
+                for synonym in action['synonyms']:
+                    distance = editdistance.eval(token, synonym['word'])
+                    if distance <= int(synonym['l']):
+                        addResultByObject('', action['id'], '',
+                                          kA * float(synonym['score']) * (len(token) - distance) / len(token))
 
     # 4. сравниваем всю фразу
     for token in source_tokens:
@@ -77,10 +88,10 @@ def main(source):
             score = 0
             for i in range(len(target_tokens)):
                 distance = editdistance.eval(token, target_tokens[i])
-                if distance <= 4:
+                if distance <= kE*len(token):
                     # Считаем, что данное слово из введенной фразы совпало с одним из слов искомой фразы. Повышаем оценку данной фразы пропорционально длине слова
                     score = score + len(target_tokens[i])/len(target['operation'])*(len(token) - distance)/len(token)
-            addResultByObject('', '', target['id'], kF*score)
+            addResultByObject('', '', target['id'], score)
 
     # 5. Формируем итоговый массив элементов
     resultList = sorted(resultList, key=lambda x: x.score, reverse=True)
